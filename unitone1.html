@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interactive Reading Pro</title>
+<style>
+body {
+    font-family: "Times New Roman", serif;
+    font-size:40px; 
+    line-height: 1.3;
+    padding: 0px 80px;
+    margin-top: 10px; 
+   background: #8ef58e;
+    color: #000;
+}
+h2 {
+    color:#0F52BA;
+    font-size:60px;    
+    text-align: center;
+    margin-top: 200px;
+}
+h1 {
+    color:#0F52BA;
+    font-size: 50px;
+    text-align: center;
+    margin-top: 50px;
+}
+
+
+.line {
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.line-hover {
+    background-color: #dff5e1;
+    border-radius: 6px;
+    transition: background 0.2s ease;
+}
+.active {
+    background-color: #dff5e1;
+}
+
+/* auto highlighted word */
+.word {
+    background: rgb(54, 246, 54);   /* pale yellow */
+    color: #000;
+    cursor: pointer;
+    padding: 2px 4px;
+    border-radius: 4px;
+}
+
+.popup {
+  position: absolute;
+  background: blue;
+  color: white;
+  padding: 30px;
+  border-radius: 10px;
+  width: max-content;      /* ← grows to fit the table's natural width */
+  min-width: 300px;        /* ← never too narrow */
+  max-width: 95vw;         /* ← never wider than the screen */
+  max-height: 80vh;
+  overflow-x: auto;        /* ← scroll if table is still too wide */
+  overflow-y: auto;
+  font-size: 53px;
+  line-height: 1.2;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: keep-all;
+  display: none;
+  border: 3px solid red;   /* border width, style, color */
+}
+.popup {
+    pointer-events: auto;
+    cursor:pointer;
+}
+.popup-speaking {
+    background: #c8f7c5;
+    color: #102a12;
+}
+.popup-sentence {
+    padding: 0px 0px;
+    margin:0px;
+    margin-bottom: 0px;
+    border-radius: 4px;
+    cursor: pointer;
+    line-height: 1.2;
+}
+.popup-sentence-speaking {
+    background: #8ef58e;
+    color: #000;
+    border-radius: 6px;
+    padding: 8px 12px;
+}
+
+.popup-sentence:hover {
+    background: #d7ffd9;
+    color: #000;
+}
+.review-row {
+    display: block;   /* important: stop flex layout */
+    padding: 6px 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.review-word {
+    display: block;
+    color: blue;
+    cursor: pointer;
+    font-weight: bold;
+     min-width: 150px;
+}
+.colon {
+    margin-left: 5px;
+    color: blue;
+}
+.review-word:hover {
+    text-decoration: underline;
+    background:rgb(155, 254, 155);
+    color: black;
+}
+.review-meaning {
+    flex: 1;
+    color: black;
+    padding-left: 100px;
+    font-size: 55px;
+    display: block;
+    padding-left: 20px;
+    text-indent: 0.5em;
+}
+.review-meaning {
+    display: none;
+}
+.review-row.revealed .review-meaning {
+    display: block;
+}
+#reviewBox2 {
+    margin-top: 20px;
+    padding: 20px;
+    border: 3px solid #333; 
+    background: #fff8dc;
+    font-size: 53px;
+    max-width: 2500px;
+}
+.review2-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #ddd;
+}
+.review2-row {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 8px 0;
+    border-bottom: 1px solid #ddd;
+    min-height: 60px;   /* ✅ IMPORTANT */
+}
+.review2-word {
+    display: none;
+    color: blue;
+    font-weight: bold;
+    font-size: 53px;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.review2-word.clicked {
+    background-color: rgb(60, 233, 60);
+    border-radius: 6px;
+    padding: 200px 200px;
+}
+
+.review2-meaning {
+    display: inline-block;   /* ✅ force render */
+    color: black;
+    cursor: pointer;
+    flex: 1;
+    font-size: 53px;
+}
+.meaning-highlight {
+    background-color: rgb(7, 153, 7);
+    transform: scale(1.15);
+    display: inline-block;
+    transition: all 0.2s ease;
+    border-radius: 6px;
+    font-size: 1.3em;
+   
+}
+
+.review2-meaning.active-padding {
+    padding-left: 60px;   /* increase as you like */
+    transition: all 0.2s ease;
+}
+.review2-meaning:hover {
+    background-color: blue;
+    color: white;
+    border-radius: 4px;
+    padding-right: 1px;
+    padding-left:40px;
+    padding-top:20px;
+    padding-bottom:20px;
+
+}
+.review2-colon {
+    font-weight: bold;
+    margin-right: 10px;
+    color:blue;
+}
+.review2-word-clicked {
+    background: #a27e14;
+    border-radius: 6px;
+    transform: scale(1.1);
+    transition: all 0.2s ease;
+}
+.sentence {
+    text-indent: 1em;
+    margin-bottom: 20px;
+    text-align: justify;
+    word-spacing: -6px;
+    overflow: visible;
+}
+
+.para-wrap {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    margin-left: -80px;
+     text-indent: 1em;
+}
+
+.para-play-btn {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    gap: 6px;
+    padding: 4px 15px;
+    font-size: 25px;
+    font-family: "Times New Roman", serif;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    background: transparent;
+    color: green;
+    cursor: pointer;
+    position: sticky;
+    top: 40vh;
+    transform: translateY(-50%);
+}
+.para-play-btn:hover { 
+    background: #d2f7d2; 
+    border-color: #0a7a2e;
+}
+.para-play-btn.playing { 
+    background: #0a7a2e; 
+    color: orchid;
+    border-color: #0a7a2e;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+th, td {
+    padding: 10px;
+}
+th:last-child, td:last-child {
+    border-right: none;
+}
+.header-img {
+    display: block;
+    margin: 20px auto;
+    max-width: 80%;
+    border-radius: 10px;
+}
+.toc {
+    position: fixed;
+    top: 50px;
+    left:0px;
+    background: rgba(255,255,255,0.9);
+    padding: 0px;
+    border-radius: 5px;
+    font-size: 25px;
+    z-index: 999;
+    max-width: 135px;
+}
+.toc a {
+    text-decoration: none;
+    color: #333;
+}
+.toc a:hover {
+    color: blueviolet;
+    background-color: yellowgreen;
+}
+html {
+    scroll-behavior: smooth;
+}
+#toggleToc {
+    position: fixed;
+    left: 1px;           /* some spacing from the edge */
+    top: 10px;
+    z-index: 1001;
+    font-size: 27px;      /* controls the size of ☰ */
+    padding: 5px 15px;    /* make it clickable */
+    background: rgba(4, 251, 33, 0.9);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #c530fb;          /* icon color */
+}
+.toc.hide {
+    display: none;
+}
+input {
+    top:1px;
+    font-family: "Times New Roman", serif;
+  width: 150px;
+  height: 30px;
+  font-size:30px;
+  padding: 5px;
+  
+}
+input {
+  border-radius: 8px;
+  border: 2px solid #ccc;
+}
+input:focus {
+  border-color: blue;
+  outline: none;
+}
+button {
+  font-size: 20px;
+  padding: 5px 10px;
+}
+#result {
+  margin-top: 20px;
+  font-size: 45px;
+  color: green;
+}
+.top-bar{
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 1000;
+    transition: transform 0.3s ease;
+}
+.top-bar.hide{
+    transform: translateY(-100%);
+}
+.home-link{
+    text-decoration:none;
+    font-size:20px;
+    color:#333;
+    background:#ece6da;
+    padding:10px 10px;
+    border-radius:8px;
+}
+.home-link:hover{
+    background:#d8d1c2;
+}
+.fullscreen-btn {
+    font-family: "Times New Roman", serif;
+    font-size: 20px;
+    color: #333;
+    background: #ece6da;
+    border: none;
+    padding: 10px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-left: 5px;
+}
+
+.fullscreen-btn:hover {
+    background: #d8d1c2;
+}
+</style>
+</head>
+<body>
+<div class="top-bar">
+    <a href="home.html" class="home-link">Home</a>
+    <button id="fullscreenBtn" class="fullscreen-btn">⛶Full</button>
+</div>
+</div>
+<div id="searchArea">
+  <input type="text" id="searchBox">
+  <button id="section1" onclick="searchWord()">Dictionary Search</button>
+  <button onclick="jumpToWord()">Go</button> 
+  <div id="result"> </div>
+</div>
+
+
+<div class="toc hide">
+    <h3></h3>
+    <ol id="tocList" style="list-style-type:upper-roman";>
+    </ol>
+</div>
+<button id="toggleToc">☰</button>
+
+<h1 style="text-align:center">
+</h1>
+
+<h2 id="section2" >Life at Harvard University</h2>
+<img src="images/harvard.webp" alt=" " class="header-img">
+<div class="text">
+<div class="para-wrap">
+<button class="para-play-btn" onclick="togglePara(this, this.nextElementSibling)">▶</button>        
+<span> 
+    I remember when I first found out that I had been accepted via Early Action to Stanford University. I was in the car when the email popped up in my inbox letting me know I had gotten into my dream school, and I burst into tears of pure joy. I spent the next few months imagining myself as a Cardinal, and preparing myself to accept their invitation.
+</span>
+</div>
+<div class="para-wrap">
+    <button class="para-play-btn" onclick="togglePara(this, this.nextElementSibling)">▶</button>        
+    <span> 
+        However, when the remaining admissions
+        decisions came out, words can't begin to
+        describe the excitement I felt when I learned
+        that I was also accepted to Harvard University.
+        Thus, I faced one of the toughest decisions in
+        choosing between Stanford and Harvard.
+        </span>
+</div>
+
+<div class="para-wrap">
+    <button class="para-play-btn" onclick="togglePara(this, this.nextElementSibling)">▶</button>        
+    <span> 
+        I decided to visit both campuses before making my final decision, and to my surprise, fell in love with Harvard. I had been so set on
+        becoming a Cardinal that I hadn't given serious thought to the possibility of going somewhere else.As soon as I set foot in Harvard, everything
+        felt right. The campus,the classes, the people,
+        all made me realize there was no place else I
+        wanted to spend the next four years.
+    </span>
+</div>
+<div class="para-wrap">
+    <button class="para-play-btn" onclick="togglePara(this, this.nextElementSibling)">▶</button>        
+    <span> 
+        4 After I enrolled at Harvard,I was eager to start the next phase of my life,but anxious at the thought of being across the country so far from home.Saying my goodbyes to my family and friends made me fully aware of my new found independence.I had no idea what to expect,and I feared that I would be lost at such a prestigious institution.
+    </span>
+</div>
+<div class="para-wrap">
+    <button class="para-play-btn" onclick="togglePara(this, this.nextElementSibling)">▶</button>        
+    <span> 
+        5 One semester later,I have to say that I had made the best decision of my life.I have found my home,and I have become part of the Harvard community in so many different ways.    </span>
+    </div>
+    <div class="para-wrap">
+        <button class="para-play-btn" onclick="togglePara(this, this.nextElementSibling)">▶</button>        
+        <span> 
+            6 In a few short months,if I've learned anything,it's that college is far from easy.Academics are harder than ever,but I have the freedom to study whatever concentration interests me.I applied as a pre-med student but this semester has shown me that there are virtually limitless options to explore before declaring my major next year.
+            </span>
+    </div>
+    
+    <div class="para-wrap">
+        <button class="para-play-btn" onclick="togglePara(this, this.nextElementSibling)">▶</button>        
+        <span> 
+            7. Classes often consist of lectures by professors together with smaller sections taught by graduate students, and supplemental student study groups.Collaboration in study groups is a huge part of surviving Harvard's tough academic load.If I ever felt over-loaded,I only had to walk down the stairs to see my proctor,or set up a meeting with my academic adviser.
+        </span>
+    </div>
+    <div class="para-wrap">
+        <button class="para-play-btn" onclick="togglePara(this, this.nextElementSibling)">▶</button>        
+        <span> 
+            8. This past December brought long,comprehensive exams that make up finals period, but Harvard's reading period, a dead week with no classes,was certainly a nice change from high school.There was even a Primal Scream to kick off finals week,with hundreds of stark-naked Harvard students running around the Yard at midnight in a time-old tradition.
+         </span>
+    </div>
+    <div class="para-wrap">
+    <button class="para-play-btn" onclick="togglePara(this, this.nextElementSibling)">▶</button>        
+    <span> 
+        9.  Outside class, I’m part of Harvard's Crimson Dance Team(CDT).CDT has the perfect blend of dance and spirit.Having danced competitively in the past, I was looking to renew my passion and was thrilled to discover that CDT would compete at nationals in Disney World this January.    
+    </span>
+    </div>
+    <div class="para-wrap">
+        <button class="para-play-btn" onclick="togglePara(this, this.nextElementSibling)">▶</button>        
+        <span> 
+            10 As Senior Class President at Dublin High School,I loved being a part of the leadership team and wanted to find an avenue to continue leadership in college.The First Year Social Committee(FYSC)was exactly what I was looking for.Our first event,Fright Fest ,was a Halloween's costume catwalk and dance.It was a huge success,with over 1,000members of our class attending!            
+        </span>
+    </div>
+    
+    <div class="para-wrap">
+        <button class="para-play-btn" onclick="togglePara(this, this.nextElementSibling)">▶</button>        
+        <span> 
+            11 One of the best things Harvard has to offer is its diversity.I've already met so many incredible people from all over the world,and many of my closest friends are international from places like Macedonia, Switzerland, Germany,and Greece. Listening to them makes me keen to study abroad in the future. Every single person here has the drive to learn and succeed,and I need only look across my classroom to find inspiration.        
+        </span>
+    </div>
+    <div class="para-wrap">
+        <button class="para-play-btn" onclick="togglePara(this, this.nextElementSibling)">▶</button>        
+        <span> 
+            12 This year,I live in a suite with four other girls from all over the country and abroad.We live in the Wigglesworth Hall dorm, which is at the edge of Harvard Yard,where all the freshmen live.Luckily,we're closest to the Lamont and Widener libraries,where you'll find students at all hours studying for the next exam or passed out on a desk!Our window overlooks Massachusetts Avenue,in the heart of Harvard Square.There you can find the Starbucks frequented by yours truly,the Chinese and pizza places open for late-night munchies,and the Coop,where we buy all of our books and school supplies. What's great about Harvard and its surrounding area is that everything is so accessible. Annenberg, our beautiful Hogwarts-like dining hall,is only a few minutes away from the Yard and the majority of my classes are held within the Yard and the Science Center right outside so I can walk everywhere.         </span>
+    </div>
+    <div class="para-wrap">
+        <button class="para-play-btn" onclick="togglePara(this, this.nextElementSibling)">▶</button>        
+        <span> 
+            13 Every morning I wake up at Harvard,I think to myself how blessed I am to be there.Being at Harvard can be overwhelming,but there is no other place I'd rather be.        </span>
+    </div>
+</div>
+<h2 id="section3" >Adjusting to College Life</h2>
+<img src="images/textb.jpg" alt=" " class="header-img">
+<div class="text">
+
+<div class="para-wrap">
+<button class="para-play-btn" onclick="togglePara(this, this.nextElementSibling)">▶</button>        
+<span> 
+    1. It can be a difficult time.Suddenly,perhaps for the first time in your life,you're moving away from everything familiar to you-family, friends, home, community-and beginning to make your way as a young adult entirely surrounded by strangers,in a new setting.You may feel that everything is on the line:your ability to succeed at college-level work,to build adult relationships,and to adapt to a lot of change all at once.
+</span>
+</div>
+<div class="para-wrap">
+    <button class="para-play-btn" onclick="togglePara(this, this.nextElementSibling)">▶</button>        
+    <span> 
+        2. According to a recent UCLA study,more than30 percent of college freshmen reported feeling over-whelmed a great deal of the time during the beginning of college,and Johns Hopkins University reported that more than 40 percent of a recent freshman class sought help from the student counseling center.So understand that if you're feeling pressure and stress,you're not alone.
+    </span>
+</div>
+<div class="para-wrap">
+    <button class="para-play-btn" onclick="togglePara(this, this.nextElementSibling)">▶</button>        
+    <span> 
+    Helping Yourself<br>
+3. Many college students have minor problems adjusting to their new environment.Here are a few ideas that can help you manage your feelings of pressure and stress:
+    </span>
+</div>
+
+<div class="para-wrap">
+    <button class="para-play-btn" onclick="togglePara(this, this.nextElementSibling)">▶</button>        
+    <span> 
+        4. Better plan your use of time.Make time every day to prioritize your work,Prioritizing can give you a sense of control over what you must do,and a sense that you can do it.
+    </span>
+</div>
+<div class="para-wrap">
+<button class="para-play-btn" onclick="togglePara(this, this.nextElementSibling)">▶</button>        
+<span> 
+    5. Plan your work and sleep schedules.Too many students defer doing important classwork until late at night,work through much of the night,and start each new day exhausted.Constant fatigue can be a critical trigger for depression,Seven or eight hours ofsleep a night is important to your well-being.
+</span>
+</div>
+<div class="para-wrap">
+    <button class="para-play-btn" onclick="togglePara(this, this.nextElementSibling)">▶</button>        
+    <span> 
+        6 Join an extracurricular activity:Sports,theater,Greek life³,the student newspaper—whatever interests you—can bring opportunities to meet people interested in the same things you are,and it provides a welcome change from classwork.
+    </span>
+</div>
+<div class="para-wrap">
+    <button class="para-play-btn" onclick="togglePara(this, this.nextElementSibling)">▶</button>        
+    <span> 
+    Helping Yourself<br>
+    7 Make a friend.Sometimes this may be a roommate or someone you meet in class or in the cafeteria.Friendships can help make a strange place feel more friendly and comfortable.    
+</span>
+</div>
+
+<div class="para-wrap">
+    <button class="para-play-btn" onclick="togglePara(this, this.nextElementSibling)">▶</button>        
+    <span> 
+        8 Ty relaxation methods.These include meditation,deep breathing,warm baths,long walks,exercise—whatever you enjoy that lessens your feelings of stress or discomfort.    
+    </span>
+</div>
+<div class="para-wrap">
+    <button class="para-play-btn" onclick="togglePara(this, this.nextElementSibling)">▶</button>        
+    <span> 
+        9 Take time for yourself each day Make this special time—even if it's only 15 minutes by yourself—a period where you think about your feelings and dreams.Focusing on yourself can be energizing and gives a feeling of purposefulness and control over life.    </span>
+</div>
+<div class="para-wrap">
+    <button class="para-play-btn" onclick="togglePara(this, this.nextElementSibling)">▶</button>        
+    <span> 
+    Developmental Tasks of College Students<br>
+    10. Achieving competence.This involves the development of intellectual, emotional, cognitive, behavioral, and social abilities as well as physical and manual skills.   
+ </span>
+</div>
+<div class="para-wrap">
+    <button class="para-play-btn" onclick="togglePara(this, this.nextElementSibling)">▶</button>        
+    <span> 
+        11 Managing emotions.The young adult's initial task is to become aware of personal feelings and to recognize that they provide information relevant to contemplated behavior or to decisions about future plans.As a larger range of feelings is fully acknowledged and expressed in appropriate ways,new and more useful patterns of expression and control can be achieved.    </span>
+</div>
+<div class="para-wrap">
+<button class="para-play-btn" onclick="togglePara(this, this.nextElementSibling)">▶</button>        
+<span> 
+    12 Becoming autonomous.Mature autonomy requires both emotional independence(freedom from continual and pressing needs for reassurance and approval)and instrumental independence(the ability to structure one's life and master the environment in ways that allow for mobilization to satisfy one's daily needs,carry on activities,and cope with problems without extensive direction or support from others).Simultaneously,the individual must accept interdependence,recognizing the reciprocal nature of the relationship between the individual and his/her community,that one cannot receive benefits from a social structure without contributing to it and that personal rights have a corollary social responsibility.
+</span>
+</div>
+<div class="para-wrap">
+    <button class="para-play-btn" onclick="togglePara(this, this.nextElementSibling)">▶</button>        
+    <span> 
+        13 Establishing identity.Identity is confidence in one's ability to maintain inner sameness and continuity;to reach this stage,one must understand one's physical needs,characteristics,and personal appearance and be sure of sexual identification and appropriate roles and behavior.    </span>
+</div>
+<div class="para-wrap">
+    <button class="para-play-btn" onclick="togglePara(this, this.nextElementSibling)">▶</button>        
+    <span> 
+    Helping Yourself<br>
+    14 Freeing interpersonal relationships.As one matures,one should be able to express greater trust,interdependence,and individuality in relationships so that one may feel less need to conform to the standards of friends or to conceal shortcomings or disagreements.Developing tolerance for a wide range of persons is a significant aspect of this task which involves respect and acceptance of those of different backgrounds,beliefs,cultures,races,lifestyles,and appearances.
+</span>
+</div>
+
+<div class="para-wrap">
+    <button class="para-play-btn" onclick="togglePara(this, this.nextElementSibling)">▶</button>        
+    <span> 
+        15 Establishing and clarifying purposes.To develop purposes,an individual must formulate plans and priorities for a healthy lifestyle conducive to well-being that integrate establishing a personal direction and orientation in one's life that takes into account personal and ethical values,future relationship/family plans,cultural participation,career objectives and educational involvement,as well as leisure time interests.    
+    </span>
+</div>
+<div class="para-wrap">
+    <button class="para-play-btn" onclick="togglePara(this, this.nextElementSibling)">▶</button>        
+    <span> 
+        16 Developing integrity.This task involves making one's values both more personal and more humane.One examines and selects a personally valid set of beliefs that have some internal consistency and provide a guide for behavior.At the same time one drops a literal belief in the absoluteness of rules and adopts a more relative view,and acts in accordance with these personal values.    
+    </span>
+</div>
+</div>
+<div id="popup" class="popup"></div>
+<h2 id="section4" >Review Box</h2>
+<div id="reviewBox">Review</div>
+<h2 id="section5" >Review Box2</h2>
+<div id="reviewBox2"></div>
+<script> 
+    window.dictionary = {
+        "Early Action":"an application process in which a student applies to a university early and receives an admission decision earlier than in the regular admission process",
+    "admission":"the act of accepting someone into an institution or organization; the right to enter a place or join an institution or organization",
+    "attend":"to be present at an event",
+    "blend":"a pleasant or useful combination of different things",
+    "blessed":"lucky",
+    "campus":"the buildings of a university or college and the land around them",
+    "catwalk":"a long stage that models walk on during a fashion show; a fashion show on such a stage",
+    "collaboration":"the act of working with another person or group of people to create or produce something",
+    "community":"all the people who live in a particular area, country, etcwhen talked about as a group",
+    "competitively":"used to describe a situation in which people or organizations compete against each other",
+    "comprehensive":"including all or almost all the items, details, facts, or information that may be concerned",
+    "concentration":"an academic major or area of focus within a major",
+    "costume":"the clothes worn by people from a particular place or during a particular historical period",
+    "declare":"to say something officially or publicly",
+    "diversity":"the quality or fact of including a range of many people or things",
+    "enroll":"to arrange for yourself or someone else to officially join a course, school, etc",
+    "explore":"to examine something completely or carefully in order to find out more about it",
+    "fest":"a festival or large meeting involving a particular activity or with a particular atmosphere",
+    "frequent":"to visit a particular place often",
+    "freshman":"a student who is in his or her first year at a university or college",
+    "fright":"a feeling of fear; an experience that makes you feel fear",
+    "inbox":"the place on a computer where new email messages are shown",
+    "incredible":"extremely good or extremely large; impossible or very difficult to believe",
+    "inspiration":"a person or thing that makes you want to be better, more successful, etc",
+    "institution":"a large important organization that has a particular purpose, for example, a university or bank",
+    "keen":"(1)wanting to do something or wanting something to happen very much.<br>(2)strong or deep.<br>He took a keen interest in his grandson's education.",
+    "leadership":"the state or position of being a leader",
+    "munchies":"snacks or small items of food",
+    "newfound":"recently discovered or achieved",
+    "option":"something that you can choose to have or do; the freedom to choose what you do",
+    "overloaded":"loaded with too great a burden or cargo",
+    "overlook":"to have a view of something from above",
+    "overwhelming":"very great or very strong; so powerful that you cannot resist it or decide how to react",
+    "passion":"a very strong feeling of love, hatred, anger, enthusiasm, etc",
+    "phase":"a stage in a process of change or development",
+    "pizza":"a food consisting of a flat round bread base with cheese, tomatoes, vegetables, meat, etcon top",
+    "pre-med":"a student who is taking classes in preparation for medical school",
+    "prestigious":"respected and admired as very important or of very high quality",
+    "primal":"connected with the earliest origins of life; very basic",
+    "proctor":"a supervisor, especially of an examination or dormitory in a school",
+    "pure":"not mixed with anything else",
+    "renew":"to begin something again after a pause or an interruption",
+    "section":"any of the parts into which something is divided",
+    "semester":"one of the two periods that the school or college year is divided into",
+    "stark-naked":"not wearing any clothes at all",
+    "suite":"a set of rooms, especially in a hotel",
+    "supplemental":"provided in addition to something else in order to improve or complete it",
+    "thrilled":"very excited and pleased",
+    "tough":"having or causing problems or difficulties; difficult or hard",
+    "via":"by means of a particular person, system, etc",
+    "virtually":"almost or very nearly",
+    "at the thought of":"on thinking about something",
+    "be aware of":"to notice that something is present or that something is happening",
+    "be set on doing sth.":"to be determined to do something",
+    "consist of":"to be formed from the things, people, or activities mentioned",
+    "have no idea":"used to emphasize that you do not know something",
+    "kick off":"to start",
+    "look to do sth.":"to anticipate or expect to do something",
+    "make up":"to form or compose",
+    "pass out":"to suddenly become unconscious, for example because you are too tired; to faint",
+    "pop up":"to appear suddenly and unexpectedly",
+    "set foot in":"to enter or visit a place",
+    "acknowledge":"to accept that something is true",
+    "appropriate":"suitable, acceptable, or correct for the particular circumstances",
+    "autonomous":"able to do things and make decisions without help from anyone else",
+    "autonomy":"the state of being autonomous",
+    "behavioral":"of the way a person, animal, plant, chemical, etcbehaves or functions in a particular situation",
+    "cafeteria":"a restaurant, often in colleges or hospitals, where you choose and pay for your meal at a counter and carry it to a table for eating",
+    "characteristic":"a typical feature or quality that something or someone has",
+    "clarify":"to make something clearer or easier to understand",
+    "cognitive":"connected with mental processes of understanding",
+    "competence":"the ability to do something well",
+    "conceal":"to hide someone or something",
+    "conducive":"making a certain situation or outcome likely or possible",
+    "consistency":"the quality of always behaving in the same way or of having the same opinions, standards, etc",
+    "contemplate":"to think deeply about something for a long time",
+    "corollary":"a statement or fact that naturally follows from another statement or fact",
+    "counsel":"to listen and give support or professional advice to someone who needs help",
+    "critical":"extremely important because a future situation will be affected by it",
+    "defer":"to delay something until a later time",
+    "depression":"the state of feeling very sad and without hope",
+    "discomfort":"a feeling of slight pain or of being physically uncomfortable",
+    "emotional":"connected with people's feelings",
+    "energizing":"making someone enthusiastic about something or giving someone more energy or strength",
+    "environment":"the conditions that affect the behaviour and development of someone or something",
+    "establish":"to start or create an organization, system, etc",
+    "ethical":"connected with beliefs and principles about what is right and wrong",
+    "exhausted":"very tired",
+    "extensive":"covering a large area; great in amount",
+    "extracurricular":"taking place outside the normal school timetable",
+    "fatigue":"a feeling of being extremely tired",
+    "formulate":"to create or prepare something carefully, giving particular attention to the details",
+    "humane":"showing kindness towards people and animals, especially those who are suffering",
+    "identification":"a person's sense of identity with someone or something",
+    "individual":"a person considered separately rather than as part of a group",
+    "individuality":"the qualities that make someone or something different from others",
+    "initial":"happening at the beginning",
+    "instrumental":"serving or acting as a means or aid",
+    "integrate":"to combine two or more things so that they work together",
+    "integrity":"the quality of being honest and having strong moral principles",
+    "intellectual":"connected with or using a person's ability to think logically and understand things",
+    "interdependence":"a relation of mutual dependence",
+    "internal":"connected with the inside of something",
+    "interpersonal":"connected with relationships between people",
+    "involve":"to contain as a part; to include",
+    "involvement":"emotional or personal association with someone",
+    "leisure":"time spent doing what you enjoy when you are not working or studying",
+    "lessen":"to make something become smaller, weaker, or less important",
+    "literal":"understanding words, behaviour, and situations in a simple way that ignores context or implications",
+    "maintain":"to make something continue at the same level or standard",
+    "manual":"involving using the hands or physical strength",
+    "mature":"behaving in a sensible way, like an adult",
+    "meditation":"the practice of thinking deeply in silence, especially for religious reasons or in order to make your mind calm",
+    "mobilization":"finding and starting to use something that is needed for a particular purpose",
+    "opportunity":"a chance to do or achieve something",
+    "orientation":"a main interest, quality, or goal",
+    "participation":"the act of taking part in an activity or event",
+    "pressing":"needing to be dealt with immediately",
+    "prioritize":"to put tasks or problems in order of importance so that you can deal with the most important first",
+    "purposefulness":"acting with a clear aim and with determination",
+    "range":"a variety of things of a particular type",
+    "reassurance":"the fact of giving advice or help that takes away a person's fears or doubts",
+    "reciprocal":"involving two people or groups who agree to help each other or behave in the same way to each other",
+    "relaxation":"a way of resting and enjoying yourself",
+    "seek":"to ask for something",
+    "setting":"a set of surroundings",
+    "significant":"large or important enough to have an effect or to be noticed",
+    "simultaneously":"at the same time",
+    "stress":"pressure or worry caused by the problems in someone's life",
+    "structure":"to arrange or organize something into a system or pattern",
+    "trigger":"something that is the cause of a particular reaction or development, especially a bad one",
+    "valid":"based on what is logical or true",
+    "well-being":"general health and happiness",
+
+    "adapt to":"to change your behaviour in order to deal more successfully with a new situation",
+    "adjust to":"to get used to a new situation by changing the way you behave and/or think",
+    "(be) conducive to":"making it easy, possible, or likely for something to happen",
+    "conform to":"to behave and think in the same way as most other people in a group or society",
+    "contribute to":"to help a joint cause by giving money, help, advice, etc",
+    "cope with":"to deal successfully with something difficult",
+    "focus on":"to give attention, effort, etcto one particular subject, situation, or person rather than another",
+    "in accordance with":"in a way that agrees with or follows a rule or request",
+    "make one's way":"to move forward, usually by following a path",
+    "on the line":"at risk",
+    "be relevant to":"directly connected with what is being discussed or considered",
+    "take into account":"to consider particular facts or circumstances when making a decision about something"
+};
+
+const popupImages = {
+    "early action": "images/earlyaction.png",
+    "primal":"images/primalscream.webp"
+};
+
+let paraCurrentLine = null;
+let paraLastClickedIndex = 0;
+let paraActiveBtn = null;
+let paraActiveUtt = null;
+let paraIsPaused = false;
+let paraSentences = [];
+let paraCurrentIndex = 0;
+
+function normalizeTTS(text) {
+  return text
+    .replace(/Mr\./g, "Mister")
+    .replace(/Mrs\./g, "Missus")
+    .replace(/Dr\./g, "Doctor");
+}
+function speakParaFrom(btn, paraEl, index) {
+
+console.log(
+    "speakParaFrom index =", index,
+    "total =", paraSentences.length
+);
+
+// Remove previous highlights
+document.querySelectorAll(".line").forEach(el => {
+    el.classList.remove("active");
+});
+
+if (index >= paraSentences.length) {
+    btn.textContent = "▶";
+    btn.classList.remove("playing");
+    paraIsPaused = false;
+    paraActiveBtn = null;
+    paraActiveUtt = null;
+    return;
+}
+
+// IMPORTANT:
+// Search for the line ONLY inside the current paragraph
+const currentLine = paraEl.querySelector(
+    `.line[data-idx="${index}"]`
+);
+
+paraCurrentLine = currentLine;
+
+if (currentLine) {
+    currentLine.classList.add("active");
+
+    currentLine.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+    });
+}
+
+let text = paraSentences[index];
+
+paraActiveUtt = new SpeechSynthesisUtterance(text);
+paraActiveUtt.lang = "en-US";
+paraActiveUtt.rate = 1.2;
+
+paraActiveUtt.onend = () => {
+
+    if (currentLine) {
+        currentLine.classList.remove("active");
+    }
+
+    if (!paraIsPaused) {
+        paraCurrentIndex++;
+
+        speakParaFrom(
+            btn,
+            paraEl,
+            paraCurrentIndex
+        );
+    }
+};
+
+speakWithVoice(paraActiveUtt);
+}
+
+function togglePara(btn, paraEl) {
+    event.stopPropagation();
+
+    // if playing — pause
+    if (paraActiveBtn === btn && !paraIsPaused) {
+    speechSynthesis.cancel();
+
+    paraIsPaused = true;
+
+    btn.textContent = "▶";
+
+    paraCurrentIndex++;
+
+    return;
+}
+
+    // if paused — resume from current index
+    if (paraActiveBtn === btn && paraIsPaused) {
+    paraIsPaused = false;
+    btn.textContent = "⏹";
+    speakParaFrom(btn, paraEl, paraCurrentIndex);
+    return;
+}
+
+    // fresh start — always rebuild from paraLastClickedIndex
+    speechSynthesis.cancel();
+    paraIsPaused = false;
+    isPaused = false;
+    currentUtterance = null;
+    currentElement = null;
+    document.querySelectorAll(".line").forEach(s => s.classList.remove("active"));
+
+    if (paraActiveBtn) {
+        paraActiveBtn.textContent = "▶";
+        paraActiveBtn.classList.remove("playing");
+    }
+
+   paraSentences = Array.from(
+  paraEl.querySelectorAll(".line")
+).map(el => normalizeTTS(el.innerText.trim()));
+paraCurrentIndex = paraLastClickedIndex;
+    paraActiveBtn = btn;
+    btn.textContent = "⏹";
+    btn.classList.add("playing");
+
+    // if resuming after sentence click, don't re-speak from 0
+
+    console.log(
+    "paraCurrentIndex =", paraCurrentIndex,
+    "paraLastClickedIndex =", paraLastClickedIndex
+);
+speakParaFrom(btn, paraEl, paraCurrentIndex);
+}
+function speakWithVoice(utt) {
+    let voices = speechSynthesis.getVoices();
+    if (voices.length === 0) {
+        speechSynthesis.onvoiceschanged = () => {
+            let v = speechSynthesis.getVoices().find(v => v.lang === "en-US");
+            if (v) utt.voice = v;
+            speechSynthesis.speak(utt);
+        };
+    } else {
+        let v = voices.find(v => v.lang === "en-US");
+        if (v) utt.voice = v;
+        speechSynthesis.speak(utt);
+    }
+}
+
+
+function protectAbbreviations(text) {
+    return text
+        .replace(/\bMr\./g, "Mr@@")
+        .replace(/\bMrs\./g, "Mrs@@")
+        .replace(/\bDr\./g, "Dr@@")
+        .replace(/\b([A-Z])\./g, "$1@@");
+}
+function restoreAbbreviations(text) {
+    return text.replace(/@@/g, ".");
+}
+function escapeRegex(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+function wrapAndHighlight(elements) {
+    const keys = Object.keys(dictionary).sort((a,b) => b.length - a.length);
+    elements.forEach(para => {
+        let htmlContent = para.innerHTML;
+        htmlContent = htmlContent.replace(/\n+/g, " ");
+        htmlContent = htmlContent.replace(/<br\s*\/?>/gi, "|||BR|||");
+        htmlContent = protectAbbreviations(htmlContent);
+        const sentences = htmlContent.match(/[^.?!]+[.?!][""']*/g) || [htmlContent];
+       para.innerHTML = sentences.map((sentence, i) => {
+    let html = sentence;
+    html = restoreAbbreviations(html);
+    html = html.replace(/\|\|\|BR\|\|\|/g, "<br>");
+    keys.forEach(word => {
+        const regex = new RegExp(`(?<!\\w)${escapeRegex(word)}(?!\\w)`, "gi");
+        html = html.replace(regex, match => `<span class="word">${match}</span>`);
+    });
+    return `<span class="line" data-idx="${i}">${html.trim()}</span>`;
+}).join(" ");
+    });
+}
+
+const popup = document.getElementById("popup");
+let currentUtterance = null;
+let currentElement = null;
+let isPaused = false;
+let currentSentenceText = "";
+let popupSentenceIndex = 0;
+
+popup.addEventListener("click", function(e) {
+
+const sentenceEl = e.target.closest(".popup-sentence");
+
+if (!sentenceEl) return;
+
+document.querySelectorAll(".popup-sentence")
+    .forEach(el => el.classList.remove("popup-sentence-speaking"));
+
+sentenceEl.classList.add("popup-sentence-speaking");
+
+let utter = new SpeechSynthesisUtterance(
+    sentenceEl.innerText.trim()
+);
+
+utter.lang = "en-US";
+utter.rate = 1.4;
+utter.pitch = 1.0;
+utter.volume = 1.0;
+
+utter.onend = () => {
+    sentenceEl.classList.remove("popup-sentence-speaking");
+};
+
+speechSynthesis.cancel();
+speakWithVoice(utter);
+
+});
+
+function buildReviewBox() {
+    const box = document.getElementById("reviewBox");
+    let html = "<h3>Vocabulary Review</h3>";
+    Object.entries(dictionary).forEach(([word, meaning]) => {
+        html += `<div class="review-row">
+            <div class="review-word">${word} <span class="colon">:</span></div>
+            <div class="review-meaning sentence">${meaning}</div>
+        </div>`;
+    });
+    box.innerHTML = html;
+    wrapAndHighlight(box.querySelectorAll(".review-meaning"));
+}
+
+function buildReviewBox2() {
+    const box = document.getElementById("reviewBox2");
+    let html = "<h3>Smart Review</h3>";
+    Object.entries(dictionary).forEach(([word, meaning]) => {
+        html += `<div class="review2-row" data-state="0">
+            <div class="review2-word">${word}</div>
+            <div class="review2-colon">:</div>
+            <div class="review2-meaning">${meaning}</div>
+        </div>`;
+    });
+    box.innerHTML = html;
+}
+
+window.addEventListener("load", () => {
+    wrapAndHighlight(document.querySelectorAll(".para-wrap > span"));
+    // pre-populate paraSentences from the paragraph span
+const firstSpan = document.querySelector(".para-wrap > span");
+if (firstSpan) {
+    let fullText = firstSpan.innerText;
+    fullText = fullText.replace(/(\d+),(\d+)/g, "$1$2");
+    fullText = fullText.replace(/\bbn\b/g, "billion");
+    paraSentences = fullText.match(/[^.!?]+[.!?]+/g) || [fullText];
+}
+    buildReviewBox();
+    buildReviewBox2();
+
+    const tocList = document.getElementById("tocList");
+    const toc = document.querySelector(".toc");
+    const toggleBtn = document.getElementById("toggleToc");
+
+    document.querySelectorAll("[id^='section']").forEach(h => {
+        let li = document.createElement("li");
+        let a = document.createElement("a");
+        a.href = "#" + h.id;
+        a.textContent = h.innerText || h.textContent;
+        li.appendChild(a);
+        tocList.appendChild(li);
+    });
+
+    toggleBtn.onclick = (e) => { e.stopPropagation(); toc.classList.toggle("hide"); };
+    toc.addEventListener("click", e => e.stopPropagation());
+    document.addEventListener("click", e => {
+        if (!toc.contains(e.target) && !toggleBtn.contains(e.target)) toc.classList.add("hide");
+    });
+});
+
+document.querySelector('.toc').addEventListener('click', function(e) {
+    const link = e.target.closest('a');
+    if (!link) return;
+    if (link.getAttribute('href') === '#section1') {
+        e.preventDefault();
+        document.getElementById('searchBox').focus();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+});
+
+function makePopupSentencesClickable(text) {
+
+// Convert <br> into spaces so the sentences can be split normally
+text = text.replace(/<br\s*\/?>/gi, " ");
+
+// Split at ., !, or ?
+let sentences = text.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [text];
+
+return sentences.map(
+    s => `<div class="popup-sentence">${s.trim()}</div>`
+).join("");
+}
+
+document.addEventListener("click", function(e) {
+    const wordEl = e.target.closest(".review2-word");
+    if (wordEl) {
+        let utter = new SpeechSynthesisUtterance(wordEl.innerText.trim());
+        speechSynthesis.cancel();
+        speechSynthesis.speak(utter);
+        wordEl.classList.add("review2-word-clicked");
+        setTimeout(() => wordEl.classList.remove("review2-word-clicked"), 300);
+        return;
+    }
+});
+
+document.addEventListener("click", function(e) {
+    if (e.target.classList.contains("word")) {
+        e.stopPropagation();
+        let rawText = e.target.innerText.trim();
+        let meaning = dictionary[rawText] || dictionary[Object.keys(dictionary).find(k => k.toLowerCase() === rawText.toLowerCase())] || "No definition";
+        let utter = new SpeechSynthesisUtterance(rawText);
+        utter.lang = "en-US"; utter.rate = 1.2;
+        speechSynthesis.cancel();
+        speechSynthesis.speak(utter);
+        const image = popupImages[rawText.toLowerCase()];
+
+        popup.innerHTML = `
+    ${image ? `<img src="${image}" 
+        style="
+            display:block;
+            width:600px;
+            max-width:100%;
+            height:auto;
+            margin:0 auto 20px auto;
+            border-radius:10px;
+        ">` : ""}
+    ${makePopupSentencesClickable(meaning)}
+`;
+
+popup.style.display = "block";
+        let x = e.pageX, y = e.pageY;
+      setTimeout(() => {
+    let rect = popup.getBoundingClientRect();
+
+    // prevent going off the right edge
+    if (x + rect.width > window.innerWidth) x = window.innerWidth - rect.width - 10;
+
+    // prevent going off the bottom: flip above the cursor
+    if (y + rect.height > window.innerHeight + window.scrollY) y = y - rect.height - 10;
+
+    // prevent going off the TOP of the page
+    if (y < window.scrollY + 10) y = window.scrollY + 10;
+
+    // prevent going off the left edge
+    if (x < 10) x = 10;
+
+    popup.style.left = x + "px";
+    popup.style.top = y + "px";
+}, 0);
+        return;   // ← this closing brace and return were missing
+    }
+
+    const reviewWord = e.target.closest(".review-word");
+
+if (reviewWord) {
+    e.stopPropagation();
+
+    // Keep the meaning reveal/hide function
+    reviewWord.closest(".review-row").classList.toggle("revealed");
+
+    // Faster and louder pronunciation
+    let utter = new SpeechSynthesisUtterance(
+        reviewWord.innerText.trim()
+    );
+
+    utter.lang = "en-US";
+    utter.rate = 1.4;
+    utter.pitch = 1.0;
+    utter.volume = 1.0;
+
+    speechSynthesis.cancel();
+    speakWithVoice(utter);
+
+    return;
+}
+
+const reviewWord2 = e.target.closest(".review2-word");
+
+if (reviewWord2) {
+    e.stopPropagation();
+
+    let utter = new SpeechSynthesisUtterance(
+        reviewWord2.innerText.trim()
+    );
+
+    utter.lang = "en-US";
+    utter.rate = 1.4;
+    utter.pitch = 1.0;
+    utter.volume = 1.0;
+
+    speechSynthesis.cancel();
+
+    speakWithVoice(utter);
+
+    return;
+}
+
+    const meaning2 = e.target.closest(".review2-meaning");
+    if (meaning2) {
+        const row = meaning2.closest(".review2-row");
+        const wordEl2 = row.querySelector(".review2-word");
+        let state = Number(row.dataset.state || 0);
+        if (state === 0) {
+
+meaning2.classList.add(
+    "active-padding",
+    "meaning-highlight",
+    "expanded-padding"
+);
+
+let text = meaning2.innerText
+    .split(/(?<=[.!?])\s+/)[0]
+    .trim();
+
+let utter = new SpeechSynthesisUtterance(text);
+
+utter.lang = "en-US";
+utter.rate = 1.3;
+utter.pitch = 1.0;
+utter.volume = 1.0;
+
+speechSynthesis.cancel();
+speakWithVoice(utter);
+
+row.dataset.state = 1;
+return;
+}
+if (state === 1) {
+
+wordEl2.style.display = "inline-block";
+
+meaning2.classList.remove("meaning-highlight");
+
+let utter = new SpeechSynthesisUtterance(
+    wordEl2.innerText.trim()
+);
+
+utter.lang = "en-US";
+utter.rate = 1.4;
+utter.pitch = 1.0;
+utter.volume = 1.0;
+
+speechSynthesis.cancel();
+speakWithVoice(utter);
+
+row.dataset.state = 2;
+return;
+}
+        if (state === 2) {
+            wordEl2.style.display = "none";
+            meaning2.classList.remove("meaning-highlight", "active-padding", "expanded-padding");
+            row.dataset.state = 0; return;
+        }
+    }
+
+    const el = e.target.closest(".line");
+    if (el) {
+        let text = normalizeTTS(el.innerText.trim());
+        text = text.replace(/Mr\./g, "Mister").replace(/Mrs\./g, "Missus").replace(/Dr\./g, "Doctor");
+        text = text.replace(/(\d+),(\d+)/g, "$1$2");
+        text = text.replace(/\bbn\b/g, "billion");
+        text = text.replace(/grown-ups'/g, "grown ups");
+        text = text.replace(/\bPh\.D\b/gi, "Ph D");
+
+        if (currentElement === el && currentUtterance) {
+            if (!isPaused) { speechSynthesis.pause(); isPaused = true; }
+            else { speechSynthesis.resume(); isPaused = false; }
+            return;
+        }
+
+        if (paraActiveBtn) {
+            speechSynthesis.cancel();
+            paraIsPaused = true;
+            paraActiveBtn.textContent = "▶";
+            paraActiveBtn.classList.remove("playing");
+        }
+
+        document.querySelectorAll(".line").forEach(s => s.classList.remove("active"));
+        el.classList.add("active");
+        currentElement = el;
+        currentUtterance = new SpeechSynthesisUtterance(text);
+        currentUtterance.lang = "en-US";
+        currentUtterance.rate = 1.2;
+        paraCurrentIndex = parseInt(el.dataset.idx || 0) + 1;
+        paraLastClickedIndex = paraCurrentIndex;
+        currentUtterance.onend = () => { el.classList.remove("active"); currentElement = null; };
+        speechSynthesis.cancel();
+        speakWithVoice(currentUtterance);
+        isPaused = false;
+        return;
+    }
+
+    if (!e.target.closest(".word") && !e.target.closest("#popup")) {
+        popup.style.display = "none";
+    }
+});
+    
+    
+document.addEventListener("mouseover",function(e) {
+    const line = e.target.closest(".line");
+    if (line) line.classList.add("line-hover");
+});
+document.addEventListener("mouseout", function(e) {
+    const line = e.target.closest(".line");
+    if (line) line.classList.remove("line-hover");
+});
+
+function searchWord() {
+    const input = document.getElementById("searchBox").value.toLowerCase();
+    const result = document.getElementById("result");
+    result.style.display = "block";
+    result.textContent = dictionary[input] || "Word not found.";
+      searchBox.value = "";
+}
+document.getElementById("searchBox").addEventListener("keypress", function(e) {
+    if (e.key === "Enter") { searchWord(); jumpToWord(); }
+});
+document.addEventListener("click", function(e) {
+    if (!document.getElementById("searchArea").contains(e.target))
+        document.getElementById("result").style.display = "none";
+});
+
+function jumpToWord() {
+    const input = document.getElementById("searchBox").value.trim().toLowerCase();
+    if (!input) return;
+    for (let el of document.querySelectorAll(".word")) {
+        if (el.innerText.toLowerCase() === input) {
+            el.scrollIntoView({ behavior: "smooth", block: "center" });
+            el.style.backgroundColor = "red";
+            setTimeout(() => el.style.backgroundColor = "", 1500);
+            return;
+        }
+    }
+    alert("Word not found in text.");
+}
+
+let lastScroll = 0;
+const topBar = document.querySelector(".top-bar");
+window.addEventListener("scroll", () => {
+    let currentScroll = window.pageYOffset;
+    if (currentScroll > lastScroll) topBar.classList.add("hide");
+    else topBar.classList.remove("hide");
+    lastScroll = currentScroll;
+});
+const fullscreenBtn = document.getElementById("fullscreenBtn");
+
+fullscreenBtn.addEventListener("click", function () {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+    } else {
+        document.exitFullscreen();
+    }
+});
+
+document.addEventListener("fullscreenchange", function () {
+    if (document.fullscreenElement) {
+        fullscreenBtn.textContent = "⛶ Exit Full Screen";
+    } else {
+        fullscreenBtn.textContent = "⛶ Full Screen";
+    }
+});
+</script>
+<script src="tables/tables.js"></script>
+</body>
+</html>
