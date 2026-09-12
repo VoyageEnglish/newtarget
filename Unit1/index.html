@@ -811,7 +811,7 @@ let text = paraSentences[index];
 
 paraActiveUtt = new SpeechSynthesisUtterance(text);
 paraActiveUtt.lang = "en-US";
-paraActiveUtt.rate = 0.9;
+paraActiveUtt.rate = 0.85;
 
 paraActiveUtt.onend = () => {
 
@@ -959,7 +959,7 @@ let utter = new SpeechSynthesisUtterance(
 );
 
 utter.lang = "en-US";
-utter.rate = 0.9;
+utter.rate = 0.85;
 utter.pitch = 1.0;
 utter.volume = 1.0;
 
@@ -1072,7 +1072,7 @@ document.addEventListener("click", function(e) {
         let rawText = e.target.innerText.trim();
         let meaning = dictionary[rawText] || dictionary[Object.keys(dictionary).find(k => k.toLowerCase() === rawText.toLowerCase())] || "No definition";
         let utter = new SpeechSynthesisUtterance(rawText);
-        utter.lang = "en-US"; utter.rate = 0.9;
+        utter.lang = "en-US"; utter.rate = 0.85;
         speechSynthesis.cancel();
         speechSynthesis.speak(utter);
         const image = popupImages[rawText.toLowerCase()];
@@ -1127,7 +1127,7 @@ if (reviewWord) {
     );
 
     utter.lang = "en-US";
-    utter.rate = 0.9;
+    utter.rate = 0.85;
     utter.pitch = 1.0;
     utter.volume = 1.0;
 
@@ -1147,7 +1147,7 @@ if (reviewWord2) {
     );
 
     utter.lang = "en-US";
-    utter.rate = 0.9;
+    utter.rate = 0.85;
     utter.pitch = 1.0;
     utter.volume = 1.0;
 
@@ -1178,7 +1178,7 @@ let text = meaning2.innerText
 let utter = new SpeechSynthesisUtterance(text);
 
 utter.lang = "en-US";
-utter.rate = 0.9;
+utter.rate = 0.85;
 utter.pitch = 1.0;
 utter.volume = 1.0;
 
@@ -1199,7 +1199,7 @@ let utter = new SpeechSynthesisUtterance(
 );
 
 utter.lang = "en-US";
-utter.rate = 0.9;
+utter.rate = 0.85;
 utter.pitch = 1.0;
 utter.volume = 1.0;
 
@@ -1243,7 +1243,7 @@ return;
         currentElement = el;
         currentUtterance = new SpeechSynthesisUtterance(text);
         currentUtterance.lang = "en-US";
-        currentUtterance.rate = 0.9;
+        currentUtterance.rate = 0.85;
         paraCurrentIndex = parseInt(el.dataset.idx || 0) + 1;
         paraLastClickedIndex = paraCurrentIndex;
         currentUtterance.onend = () => { el.classList.remove("active"); currentElement = null; };
